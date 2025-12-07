@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>TRABALHO 1 - SEGURANÇA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./css/app.css" />
+</head>
+<body>
+ <header class="topbar">
+  <div class="topbar__brand">
+    <span>♫</span>
+  </div> 
+
+  <div class="topbar__status" id="auth-status">
+    <span class="topbar__status-dot" id="auth-status-dot"></span>
+    <span id="auth-status-text">Desconectado</span>
+  </div>
+</header>
+
+
+  <main class="shell">
+    <!-- Seção 1: tela inicial / login -->
+<section id="view-welcome" class="panel">
+  <h1>Experimento de Segurança com Spotify</h1>
+  <p class="panel__subtitle">
+    Essa aplicação demonstra o fluxo OAuth 2.0 Authorization Code com PKCE em uma SPA,
+    usando a API do Spotify
+  </p>
+
+  <!-- Linha do tempo do fluxo OAuth -->
+  <div class="flow-steps">
+    <div class="flow-step flow-step--active">
+      <span class="flow-step__number">1</span>
+      <span class="flow-step__title">Escolher modo</span>
+      <span class="flow-step__desc">Viewer ou Manager</span>
+    </div>
+
+    <div class="flow-step">
+      <span class="flow-step__number">2</span>
+      <span class="flow-step__title">Login no Spotify</span>
+      <span class="flow-step__desc">Usuário autentica</span>
+    </div>
+
+    <div class="flow-step">
+      <span class="flow-step__number">3</span>
+      <span class="flow-step__title">Código &amp; PKCE</span>
+      <span class="flow-step__desc">Troca por token seguro</span>
+    </div>
+
+    <div class="flow-step">
+      <span class="flow-step__number">4</span>
+      <span class="flow-step__title">Dashboard</span>
+      <span class="flow-step__desc">Visualizar / controlar player</span>
+    </div>
+  </div>
+
+  <div class="panel__box">
+    <h2>Escolha o modo de acesso</h2>
+    <p class="panel__hint">
+      O modo determina quais permissões (escopos) serão solicitadas ao Spotify.
+    </p>
+
+    <div class="button-row">
+      <button id="btn-login-viewer" class="btn btn--primary">
+        Entrar em modo Leitura (Viewer)
+      </button>
+
+      <button id="btn-login-manager" class="btn btn--accent">
+        Entrar em modo Controle (Manager)
+      </button>
+    </div>
+
+    <p class="panel__note">
+      • Viewer: pode apenas visualizar o estado do player (faixa atual, dispositivo, etc.)<br />
+      • Manager: pode controlar a reprodução (play/pause/próxima faixa), além de visualizar
+    </p>
+  </div>
+</section>
+
+
+<!-- Seção 2: feedback enquanto troca o código por token -->
+<section id="view-loading" class="panel panel--centered hidden">
+  <div class="flow-steps">
+    <div class="flow-step flow-step--done">
+      <span class="flow-step__number">1</span>
+      <span class="flow-step__title">Escolher modo</span>
+      <span class="flow-step__desc">Concluído</span>
+    </div>
+
+    <div class="flow-step flow-step--active">
+      <span class="flow-step__number">2</span>
+      <span class="flow-step__title">Login no Spotify</span>
+      <span class="flow-step__desc">Aguardando retorno</span>
+    </div>
+
+    <div class="flow-step">
+      <span class="flow-step__number">3</span>
+      <span class="flow-step__title">Código &amp; PKCE</span>
+      <span class="flow-step__desc">Validação e troca</span>
+    </div>
+
+    <div class="flow-step">
+      <span class="flow-step__number">4</span>
+      <span class="flow-step__title">Dashboard</span>
+      <span class="flow-step__desc">Controle do player</span>
+    </div>
+  </div>
+
+  <div class="loader"></div>
+  <h2>Concluindo autenticação…</h2>
+  <p>
+    Estamos validando o retorno do Spotify, conferindo o <code>state</code>
+    e trocando o código por um token seguro
+  </p>
+</section>
+
+
+   <!-- Seção 3: dashboard autenticado -->
+<section id="view-dashboard" class="panel hidden">
+  <!-- Linha do tempo no topo, agora no passo 4 -->
+  <div class="flow-steps flow-steps--compact">
+    <div class="flow-step flow-step--done">
+      <span class="flow-step__number">1</span>
+      <span class="flow-step__title">Escolher modo</span>
+      <span class="flow-step__desc">Viewer / Manager</span>
+    </div>
+
+    <div class="flow-step flow-step--done">
+      <span class="flow-step__number">2</span>
+      <span class="flow-step__title">Login no Spotify</span>
+      <span class="flow-step__desc">Usuário autenticado</span>
+    </div>
+
+    <div class="flow-step flow-step--done">
+      <span class="flow-step__number">3</span>
+      <span class="flow-step__title">Código &amp; PKCE</span>
+      <span class="flow-step__desc">Token emitido</span>
+    </div>
+
+    <div class="flow-step flow-step--active">
+      <span class="flow-step__number">4</span>
+      <span class="flow-step__title">Dashboard</span>
+      <span class="flow-step__desc">Integração com o player</span>
+    </div>
+  </div>
+
+  <header class="panel__header">
+    <div>
+      <h1>Dashboard do Spotify</h1>
+      <p id="granted-mode" class="panel__subtitle"></p>
+    </div>
+    <!-- Botão que volta para a tela inicial -->
+    <button id="btn-logout" class="btn btn--danger">
+      Sair
+    </button>
+  </header>
+
+  <section class="card">
+    <h2>Token &amp; Escopos</h2>
+    <p id="granted-scopes" class="card__text"></p>
+  </section>
+
+  <section class="card">
+    <h2>Informações do Player</h2>
+    <div class="button-row">
+      <button id="btn-fetch-player" class="btn btn--primary">
+        Atualizar status do player
+      </button>
+    </div>
+    <pre id="player-info" class="card__pre">Nenhum dado carregado ainda.</pre>
+  </section>
+
+  <!-- Área para usuários com escopo de leitura -->
+  <section id="viewer-area" class="card hidden">
+    <h2>Faixa em reprodução (Viewer)</h2>
+    <div class="button-row">
+      <button id="btn-current-track" class="btn btn--primary">
+        Ver o que está tocando
+      </button>
+    </div>
+    <pre id="current-track" class="card__pre">...</pre>
+  </section>
+
+  <!-- Área para usuários com escopo de controle -->
+  <section id="manager-area" class="card hidden">
+    <h2>Controles de Reprodução (Manager)</h2>
+    <p class="card__text">
+      Para testar os comandos, deixe um dispositivo com Spotify ativo (desktop, mobile ou web player).
+    </p>
+    <div class="button-row">
+      <button id="btn-play" class="btn btn--accent">▶ Iniciar/Retomar</button>
+      <button id="btn-pause" class="btn">⏸ Pausar</button>
+      <button id="btn-next" class="btn">⏭ Próxima faixa</button>
+    </div>
+  </section>
+
+  <section class="card card--muted">
+    <h2>Mensagens do sistema</h2>
+    <pre id="log-area" class="card__pre card__pre--small">
+Aguardando ações do usuário…
+    </pre>
+  </section>
+</section>
+
+  </main>
+
+  
+  <script src="env.js"></script>
+  <script type="module" src="./js/oauth-flow.js"></script>
+</body>
+</html>
